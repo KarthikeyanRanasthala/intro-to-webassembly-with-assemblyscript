@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Introduction to WebAssembly</title>
+    <link rel="stylesheet" href="/reveal-js/reset.css">
+    <link rel="stylesheet" href="/reveal-js/reveal.css">
+    <link rel="stylesheet" href="/reveal-js/themes/black.css">
+    <link rel="stylesheet" href="/reveal-js/highlight/monokai.css">
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            <section>
+                <p class="r-fit-text">Introduction to WebAssembly</p>
+                <p style="text-align: right; margin: 25% 0 0;">Karthikeyan Ranasthala</p>
+                <p style="text-align: right; margin: 0;">Frontend Engineer, Tickertape</p>
+            </section>
+            <section>
+                <section>
+                    <h2 class="r-fit-text">What is WebAssembly?</h2>
+                </section>
+                <section>
+                    <p>WebAssembly is an open web standard whose main objective is to offer a near-native performance on the web while maintaining compatibility with the current ecosystems and standards</p>
+                </section>
+                <section>
+                    <p>WebAssembly is a binary instruction format designed as a portable (size and load-time-efficient) compilation target for programming languages, and Wasm is never meant to be handwritten</p>
+                </section>
+                <section>
+                    <p>Compilation target for programming languages?</p>
+                </section>
+                <section>
+                    <div style="display: flex; justify-content: space-evenly; align-items: center;">
+                        <div class="fragment" data-fragment-index="1">
+                            <p>C/C++</p>
+                            <p>C#</p>
+                            <p>Rust</p>
+                            <p>Go</p>
+                            <p>Kotlin</p>
+                            <p>Swift</p>
+                            <p>...</p>
+                        </div>
+                        <p class="fragment" data-fragment-index="2">=></p>
+                        <div>
+                            <p class="fragment" data-fragment-index="3">Wasm</p>
+                            <p class="fragment" data-fragment-index="4">Wat</p>
+                        </div>
+                    </div>
+                </section>
+                <section>
+                    <table>
+                        <thead>
+                            <th>Wasm</th>
+                            <th>Wat</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Binary</td>
+                                <td>Plain text</td>
+                            </tr>
+                            <tr>
+                                <td>Machine readable</td>
+                                <td>Human readable</td>
+                            </tr>
+                            <tr>
+                                <td>Execute</td>
+                                <td>Edit / Debug</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </section>
+            </section>
+            <section>
+                <section>
+                    <h2>Will WebAssembly replace Javascript?</h2>
+                </section>
+                <section>
+                    <p class="r-fit-text">NO!</p>
+                </section>
+                <section>
+                    <p>WebAssembly is designed to be a complement to JavaScript.</p>
+                </section>
+                <section>
+                    <p>While WebAssembly will, over time, allow many languages to be compiled to the Web, JavaScript has an incredible amount of momentum and will remain the single, privileged dynamic language of the Web</p>
+                </section>
+                <section>
+                    <p>JavaScript and WebAssembly are used together in a number of configurations,</p>
+                </section>
+                <section data-auto-animate>
+                    <p>1. Whole, compiled C++ apps that leverage JavaScript to glue things together</p>
+                </section>
+                <section data-auto-animate>
+                    <p>1. Whole, compiled C++ apps that leverage JavaScript to glue things together</p>
+                    <iframe data-src="https://dotnet.microsoft.com/en-us/apps/aspnet/web-apps/blazor" class="r-stretch"></iframe>
+                </section>
+                <section data-auto-animate>
+                    <p>2. HTML/CSS/JavaScript UI around a main WebAssembly-controlled center canvas</p>
+                </section>
+                <section data-auto-animate>
+                    <p>2. HTML/CSS/JavaScript UI around a main WebAssembly-controlled center canvas</p>
+                    <iframe data-src="https://docs.flutter.dev/development/tools/web-renderers" class="r-stretch"></iframe>
+                </section>
+                <section>
+                    <p>Moreover, everything in Wasm is a module (synonymous to ES modules), so it has to be imported and then invoked from JavaScript</p>
+                </section>
+                <section>
+                    <pre>
+                        <code data-trim data-noescape>
+                            // index.js
+                            const { instance } = await WebAssembly.instantiateStreaming(
+                                fetch('/path/to/file.wasm')
+                            )
+
+                            instance.exports.someFunction(1, 2)
+                        </code>
+                    </pre>
+                </section>
+            </section>
+            <section>
+                <section data-auto-animate>
+                    <p>Let's dive deeper</p>
+                </section>
+                <section data-auto-animate>
+                    <p>Let's dive deeper</p>
+                    <ol>
+                        <li>Data Types</li>
+                        <li>Modules</li>
+                        <li>Stacks</li>
+                        <li>Opcodes</li>
+                    </ol>
+                </section>
+            </section>
+            <section>
+                <section data-auto-animate>
+                    <h2>Data Types</h2>
+                </section>
+                <section data-auto-animate>
+                    <h2>Data Types</h2>
+                    <iframe data-src="https://webassembly.github.io/spec/core/appendix/index-types.html" class="r-stretch"></iframe>
+                </section>
+            </section>
+            <section>
+                <section data-auto-animate>
+                    <h2>Modules</h2>
+                </section>
+                <section data-auto-animate>
+                    <h2>Modules</h2>
+                    <p>A module is a fundamental unit of code</p>
+                    <p>Within a module, we create functions to export which can be called by Javascript</p>
+                </section>
+                <section>
+                    <pre>
+                        <code data-trim data-noescape data-line-numbers="1-7|1,4|2-7|3-5|6|1-7">
+                            ;; main.wat
+                            (module
+                                (func $foo (param $bar i32) (result i32)
+                                    ;; Body
+                                )
+                                (export "foo" (func $foo))
+                            )
+                        </code>
+                    </pre>
+                </section>
+            </section>
+            <section>
+                <section data-auto-animate>
+                    <h2>Stacks</h2>
+                </section>
+                <section data-auto-animate>
+                    <h2>Stacks</h2>
+                    <p>Not the Stack data structure or Javascript call stack</p>
+                </section>
+                <section>
+                    <p>A stack is memory region where variables are stored and accessed by the running program</p>
+                    <p>Once execution is complete the stack is cleared</p>
+                </section>
+                <section>
+                    <p>Web Assembly is stack based language so all operations read and write to the stack in a linear fashion</p>
+                </section>
+            </section>
+            <section>
+                <section data-auto-animate>
+                    <h2>Opcodes</h2>
+                </section>
+                <section data-auto-animate>
+                    <h2>Opcodes</h2>
+                    <p>Opcodes (Operation Codes) are readable computer instructions representing machine language instructions</p>
+                </section>
+                <section>
+                    <iframe data-src="https://pengowray.github.io/wasm-ops/" class="r-stretch" style="background-color: white;"></iframe>
+                </section>
+            </section>
+            <section>
+                <section>
+                    <h2>Example</h2>
+                </section>
+                <section>
+                    <p>Add 2 numbers</p>
+                    <pre class="fragment" data-fragment-index="1">
+                        <code data-trim data-noescape data-line-numbers="1-2">
+                            // main.js
+                            const add = (a, b) => a + b;
+                        </code>
+                    </pre>
+                    <pre class="fragment" data-fragment-index="2">
+                        <code data-trim data-noescape data-line-numbers="1-9|3|4|5|6|8|1-9">
+                            ;; main.wat
+                            (module
+                                (func $add (param $a i32) (param $b i32) (result i32)
+                                    get_local $a
+                                    get_local $b
+                                    i32.add
+                                )
+                                (export "add" (func $add))
+                            )
+                        </code>
+                    </pre>
+                </section>
+            </section>
+            <section>
+                <section>
+                    <h2>?</h2>
+                </section>
+                <section>
+                    <ul>
+                        <li>How a Web Dev can get started with Wasm?</li>
+                        <li>Should learn Golang or Rust?</li>
+                        <li>Many more questions and FOMO :(</li>
+                    </ul>
+                </section>
+                <section>
+                    <p>Typescript to the rescue!</p>
+                </section>
+                <section data-auto-animate>
+                    <p class="fragment" data-fragment-index="1">WebAssembly + Typescript</p>
+                    <p class="fragment r-fit-text" data-fragment-index="2">AssemblyScript</p>
+                </section>
+                <section data-auto-animate>
+                    <p>AssemblyScript</p>
+                    <iframe data-src="https://www.assemblyscript.org/" class="r-stretch" style="background-color: white;"></iframe>
+                </section>
+                <section>
+                    <iframe data-src="https://stackblitz.com/edit/node-alr9gi?embed=1&file=assembly/index.ts&hideNavigation=1&theme=dark&view=editor" class="r-stretch"></iframe>
+                </section>
+            </section>
+            <section>
+                <p>WebAssembly in action!</p>
+                <ul>
+                    <li>
+                        <a href="https://earth.google.com" target="_blank" rel="noopener noreferrer">Google earth</a>
+                    </li>
+                    <li>
+                        <a href="https://www.figma.com/file/KPL2DqRcV6Z8H7yvZpbUgb/Wireframe-Kit---Free-Edition/duplicate" target="_blank" rel="noopener noreferrer">Figma</a>
+                    </li>
+                    <li>
+                        <a href="https://squoosh.app" target="_blank" rel="noopener noreferrer">Squoosh</a>
+                    </li>
+                    <li>
+                        <a href="https://gallery.flutter.dev" target="_blank" rel="noopener noreferrer">Flutter web</a>
+                    </li>
+                    <li>
+                        <a href="https://stackblitz.com/edit/node-alr9gi?file=assembly/index.ts" target="_blank" rel="noopener noreferrer">Stackblitz</a>
+                    </li>
+                </ul>
+            </section>
+            <section>
+                <p>That's all for today!</p>
+            </section>
+        </div>
+    </div>
+    <script src="/script.js" type="module"></script>
+</body>
+</html>
